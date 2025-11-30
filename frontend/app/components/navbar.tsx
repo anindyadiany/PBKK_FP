@@ -1,6 +1,37 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
+import { User } from "@supabase/supabase-js";
 
 const Navbar = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    checkUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem("token");
+    window.location.reload();
+  };
+
   return (
     <div className="sticky top-0 z-50 bg-white w-full font-sans">
       <div className="border-b border-gray-100 py-4">
@@ -61,9 +92,36 @@ const Navbar = () => {
 
           {/* register (and login perhaps) */}
           <div className="flex items-center gap-4">
-            <button className="bg-[#69995D] hover:bg-[#5a8e4e] text-white px-6 py-2 rounded-md font-medium transition-colors">
-              Register
-            </button>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-semibold text-gray-700">
+                  Welcome,{" "}
+                  <span className="text-[#69995D]">
+                    {user.user_metadata?.first_name || "User"}
+                  </span>
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/login"
+                  className="text-gray-600 hover:text-[#69995D] font-medium transition-colors"
+                >
+                  Login
+                </Link>
+                <Link href="/signup">
+                  <button className="bg-[#69995D] hover:bg-[#5a8e4e] text-white px-6 py-2 rounded-md font-medium transition-colors">
+                    Register
+                  </button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
