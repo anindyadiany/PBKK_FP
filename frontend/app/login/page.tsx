@@ -26,11 +26,18 @@ const LoginPage = () => {
       });
 
       if (error) throw error;
+
       if (data.session) {
         localStorage.setItem("token", data.session.access_token);
+        
+        const role = data.session.user.user_metadata?.role;
+
+        if (role === "admin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/"; 
+        }
       }
-      
-      window.location.href = "/";
     } catch (error: any) {
       alert(error.message);
     } finally {

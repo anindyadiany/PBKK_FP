@@ -2,36 +2,46 @@ package main
 
 import (
 	"log"
-	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	
+	"pear.com/app/config"
+	"pear.com/app/controllers"
 )
-
-var db *gorm.DB
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("error loading .env file")
 	}
 
-	dsn := os.Getenv("DB_URL")
-	var err error
+	config.ConnectDB()
+	
+	r := gin.Default()
 
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal("failed to connect to database:", err)
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // Allow Next.js
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	admin := r.Group("/admin")
+	{
+		admin.POST("/products", controllers.AdminCreateProduct)
+		admin.GET("/products", controllers.AdminGetProducts)
+		admin.GET("/products/:id", controllers.AdminGetProductByID) 
+		admin.PUT("/products/:id", controllers.AdminUpdateProduct)
+		admin.DELETE("/products/:id", controllers.AdminDeleteProduct)
+		admin.GET("/orders/stats", controllers.AdminGetOrderStats)
+
+		admin.GET("/orders", controllers.AdminGetAllOrders)
+		admin.PATCH("/orders/:id/status", controllers.AdminUpdateOrderStatus)
 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatal("failed to get generic database object")
-	}
-
-	if err := sqlDB.Ping(); err != nil {
-		log.Fatal("database ping failed")
-	}
-
-	log.Println("successfully connected to supabase database and pinged the database")
+	r.Run(":8080")
 }

@@ -9,7 +9,8 @@ type Product struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Price       float64   `json:"price"`
-	Stock       int       `json:"stock_quantity"`
+	Stock       int       `gorm:"column:stock_quantity" json:"stock_quantity"`
+	
 	CreatedAt   time.Time `json:"created_at"`
 	ImageURL    string    `json:"image_url"`
 	IsActive    bool      `json:"is_active"`
