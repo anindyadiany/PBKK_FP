@@ -133,19 +133,15 @@ const Navbar = () => {
             <Link href="/" className="hover:text-[#69995D] transition-colors">
               Home
             </Link>
+
             <Link
-              href="/series"
+              href="/orders"
               className="hover:text-[#69995D] transition-colors"
             >
-              Series
-            </Link>
-            <Link
-              href="/store"
-              className="hover:text-[#69995D] transition-colors"
-            >
-              Store
+              Orders
             </Link>
           </nav>
+
 
           <div className="flex gap-6 text-black">
             {/* heart icon */}
